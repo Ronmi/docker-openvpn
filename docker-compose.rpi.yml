@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  daemon:
+    build:
+      context: ./img
+      dockerfile: rpi.dockerfile
+    volumes:
+      - ./conf:/etc/openvpn
+    ports:
+      - 1194:1194/udp
+    restart: always
+    sysctls:
+      - net.ipv4.ip_forward=1
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
