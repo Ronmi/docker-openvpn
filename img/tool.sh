@@ -5,22 +5,23 @@ cd "$CA"
 
 function init_ca {
     cp -ra /usr/share/easy-rsa/* .
+    cp openssl-1.0.0.cnf openssl.cnf
     echo ""
-    echo "please edit the 'vars' file to fitt your need."
-    echo "After finish editing, press Enter to continue..."
+    echo "You can now open another terminal and edit the 'conf/rsa/vars' file to fit your need."
+    echo "This step is optional, just skip it if you have no idea what it is."
+    echo ""
+    echo "After you are prepared, press Enter to continue..."
     read a
     source ./vars
 
     ./clean-all
 
-    echo "Press Enter to generate ca files"
-    read a
-    ./build-ca
+    # generate ca
+    ./pkitool --initca --batch
     ./build-dh
 
-    echo "PressEnter to generate server key"
-    read a
-    ./build-key-server server
+    # generate server key
+    ./pkitool --server --batch server
 }
 
 function gen {
@@ -31,7 +32,7 @@ function gen {
 	return 1
     fi
 
-    ./build-key "$1"
+    ./pkitool --batch "$1"
 }
 
 function help {
@@ -48,9 +49,12 @@ function help {
 
 case "$1" in
     init)
+	mkdir -p "$CA"
+	cd "$CA"
 	init_ca
 	;;
     gen)
+	cd "$CA"
 	gen "$2"
 	;;
     *)
