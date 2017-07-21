@@ -35,27 +35,90 @@ function gen {
     ./pkitool --batch "$1"
 }
 
+function ovpn {
+    ip="$1"
+    user="$2"
+    tmpf="$(mktemp)"
+    grep -vE '^#' /etc/openvpn/server.conf | grep -vE '^;' > "$tmpf"
+
+    echo 'client'
+    grep -E '^dev[[:space:]]' "$tmpf"
+    grep -E '^proro[[:space:]]' "$tmpf"
+    port=$(grep -E '^port[[:space:]]' server.conf|grep -oE '[[:digit:]]+')
+    if [[ $port = "" ]]
+    then
+	port=1194
+    fi
+    echo "remote ${ip} ${port}"
+    echo "resolv-retry infinite"
+    echo "nobind"
+    echo "user nobody"
+    echo "group nogroup"
+    grep -E '^persist-' "$tmpf"
+    echo "ns-cert-type server"
+    grep -E '^comp' "$tmpf"
+    echo '<ca>'
+    cat "${CA}/keys/ca.crt"
+    echo '</ca>'
+    echo '<cert>'
+    lineno=$(grep -nE '^-----BEGIN CERTIFICATE-----$' "${CA}/keys/${user}.crt"|cut -d ':' -f 1)
+    cat "${CA}/keys/${user}.crt" | tail -n "+${lineno}"
+    echo '</cert>'
+    echo '<key>'
+    cat "${CA}/keys/${user}.key"
+    echo '</key>'
+}
+
 function help {
     echo "Usage: $0 command [arguments]"
     echo ""
     echo "Supported commands:"
     echo "  init:    Initialize ca directory"
     echo "  gen:     Generate a client key, require key-file name as only argument"
+    echo "  ovpn:    Generate ovpn file, need server address and key-file name"
     echo ""
     echo "Example:"
     echo "  $0 init"
     echo "  $0 gen john"
+    echo "  $0 ovpn my-vpn.example.com john"
+}
+
+function check {
+    if [[ ! -d "$CA" ]]
+    then
+	mkdir -p "$CA"
+    fi
+
+    cd "$CA"
+
+    if [[ ! -f "${CA}/pkitool" || ! -f "${CA}/vars" || ! -f "${CA}/openssl.cnf" ]]
+    then
+	init_ca
+    fix
+    echo ""
 }
 
 case "$1" in
     init)
-	mkdir -p "$CA"
-	cd "$CA"
-	init_ca
+	check
 	;;
     gen)
+	check
 	cd "$CA"
 	gen "$2"
+	;;
+    ovpn)
+	check
+	cd "$CA"
+	if [[ ! -f "keys/${3}.key" || ! -f "keys/${3}.crt" ]]
+	then
+	    gen "$3"
+	    echo ""
+	fi
+	ovpn "$2" "$3" > "${CA}/keys/${3}.ovpn"
+
+	echo "ovpn file generated at 'conf/rsa/keys/${3}.ovpn'"
+	echo "You will need root privilege to access it."
 	;;
     *)
 	help
