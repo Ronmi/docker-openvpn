@@ -7,5 +7,6 @@ RUN apt-get update \
 
 ADD tool.sh /usr/local/bin/
 ADD start.sh /
+ADD upgrade.sh /
 
 CMD ["/start.sh"]

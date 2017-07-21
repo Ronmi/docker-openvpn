@@ -12,6 +12,11 @@ docker-compose run --rm daemon tool.sh ovpn my-vpn.example.com johndoe
 
 # start the service
 docker-compose up -d
+
+# apply Debian security updates after service is started
+docker-compose exec daemon /upgrade.sh
+# or just rebuild/recreate the container
+docker-compose build --no-cache --pull && docker-compose up -d
 ```
 
 # RaspberryPI and Linode support
