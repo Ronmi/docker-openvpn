@@ -94,7 +94,7 @@ function check {
     if [[ ! -f "${CA}/pkitool" || ! -f "${CA}/vars" || ! -f "${CA}/openssl.cnf" ]]
     then
 	init_ca
-    fix
+    fi
     echo ""
 }
 
