@@ -44,7 +44,7 @@ function ovpn {
     echo 'client'
     grep -E '^dev[[:space:]]' "$tmpf"
     grep -E '^proro[[:space:]]' "$tmpf"
-    port=$(grep -E '^port[[:space:]]' server.conf|grep -oE '[[:digit:]]+')
+    port=$(grep -E '^port[[:space:]]' /etc/openvpn/server.conf|grep -oE '[[:digit:]]+')
     if [[ $port = "" ]]
     then
 	port=1194
