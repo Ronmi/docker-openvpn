@@ -1,6 +1,7 @@
-FROM debian:latest
+FROM debian:stable-slim
 
 RUN apt-get update \
+ && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends openvpn openssl easy-rsa iptables \
  && apt-get clean -y \
  && rm -fr /var/lib/apt/lists/*
